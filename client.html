@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SimpleChat</title>
+
+    <style>
+      .left {
+        color: rgb(240 96 67);
+        text-align: left;
+        background: #fbe4d9;
+      }
+      .right {
+        color: rgb(75 63 248);
+        text-align: right;
+        background: #caf2ef;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="chatContainer">
+      <div id="messageContainer"></div>
+
+      <input type="text" name="" id="message-input" />
+      <button type=" button" id="send-message">send message</button>
+    </div>
+    <!-- link for socket.io (client end library)-->
+    <!-- server sid e -->
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script>
+      console.log("working");
+
+      //socket connection :    client side
+      const socket = io.connect("http://localhost:3000");
+
+      //getting username from prompt
+      const username = prompt("enter your name to chat");
+      socket.emit("new_user", username); //emitting(sending) username to the server.
+
+      //getting elements
+      const chatContainer = document.getElementById("chatContainer");
+      const messageContainer = document.getElementById("messageContainer");
+      const msgInpt = document.getElementById("message-input");
+      const sendBtn = document.getElementById("send-message");
+
+      sendBtn.addEventListener("click", () => {
+        const msg = msgInpt.value;
+        if (!msg) {
+          alert("type you messager");
+        }
+        //add the message to messageContainer
+        const messageElement = document.createElement("p");
+        messageElement.innerHTML = username + " : " + msg;
+        messageElement.classList.add("left");
+        messageContainer.appendChild(messageElement);
+        //send message to the server
+        socket.emit("new_msg", username + " : " + msg);
+
+        //clear input fiels
+        msgInpt.value = "";
+      });
+
+      //broadcasting message and addign to the messageContainer // below code sends message to all the clients.
+      socket.on("broadcast_msg", (msg) => {
+        // here i should use "broadcast_msg" only in app.js's broadcast code
+        console.log(msg);
+        const messageElement = document.createElement("p");
+        messageElement.innerHTML = msg;
+        messageElement.classList.add("right");
+        messageContainer.appendChild(messageElement);
+      });
+    </script>
+  </body>
+</html>
