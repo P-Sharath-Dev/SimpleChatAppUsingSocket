@@ -10,11 +10,13 @@
         color: rgb(240 96 67);
         text-align: left;
         background: #fbe4d9;
+        font-size: 20px;
       }
       .right {
         color: rgb(75 63 248);
         text-align: right;
         background: #caf2ef;
+        font-size: 22px;
       }
     </style>
   </head>
@@ -37,6 +39,7 @@
 
       //getting username from prompt
       const username = prompt("enter your name to chat");
+      // console.log("userNsme from prompt : ", username);
       socket.emit("new_user", username); //emitting(sending) username to the server.
 
       //getting elements
@@ -50,26 +53,41 @@
         if (!msg) {
           alert("type you messager");
         }
+
         //add the message to messageContainer
         const messageElement = document.createElement("p");
-        messageElement.innerHTML = username + " : " + msg;
+        messageElement.innerHTML = `<span style="font-size:14px; font-weight:bolder;">${new Date().toLocaleTimeString()} </span>
+        ${username} : ${msg}`;
         messageElement.classList.add("left");
         messageContainer.appendChild(messageElement);
+
         //send message to the server
-        socket.emit("new_msg", username + " : " + msg);
+        socket.emit("new_msg", msg);
 
         //clear input fiels
         msgInpt.value = "";
       });
 
       //broadcasting message and addign to the messageContainer // below code sends message to all the clients.
-      socket.on("broadcast_msg", (msg) => {
+      socket.on("broadcast_msg", (usermsg) => {
         // here i should use "broadcast_msg" only in app.js's broadcast code
-        console.log(msg);
+        // console.log(msg);
+        const { username, msg } = usermsg;
+        // console.log("username from broadcast : ", username, msg);
         const messageElement = document.createElement("p");
-        messageElement.innerHTML = msg;
+        messageElement.innerHTML = `<span style="font-size:14px; font-weight:bolder;">${new Date().toLocaleTimeString()}</span> ${username} : ${msg}`;
         messageElement.classList.add("right");
         messageContainer.appendChild(messageElement);
+      });
+
+      //for receving old messages and adding to message container
+      socket.on("old_messages", (oldMessages) => {
+        oldMessages.map((msg) => {
+          const messageElement = document.createElement("p");
+          messageElement.innerHTML = `<span style="font-size:14px; font-weight:bolder;">${new Date(msg.timestamp).toLocaleTimeString()}</span>   ${msg.username}`;
+          messageElement.classList.add("right");
+          messageContainer.appendChild(messageElement);
+        });
       });
     </script>
   </body>
